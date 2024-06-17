@@ -20,3 +20,7 @@ struct Movie: Codable {
         case posterPath = "poster_path"
     }
 }
+
+struct MovieResponse: Codable {
+    let results: [Movie]
+}
