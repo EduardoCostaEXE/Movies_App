@@ -33,7 +33,7 @@ class MovieDetailViewController: UIViewController {
     private let gradientLayer: CAGradientLayer = {
         let layer = CAGradientLayer()
         layer.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
-        layer.locations = [0.5, 1.0]
+        layer.locations = [0.1, 1.0]
         return layer
     }()
     
@@ -67,6 +67,7 @@ class MovieDetailViewController: UIViewController {
         super.viewDidLoad()
         setupView()
         configureView()
+        updateScrollViewContentSize()
     }
     
     override func viewDidLayoutSubviews() {
@@ -80,17 +81,27 @@ class MovieDetailViewController: UIViewController {
         if let posterPath = movie.posterPath {
             let urlString = "https://image.tmdb.org/t/p/w500\(posterPath)"
             if let url = URL(string: urlString) {
-                URLSession.shared.dataTask(with: url) { data, response, error in
-                    if let data = data {
-                        DispatchQueue.main.async {
-                            self.imageView.image = UIImage(data: data)
-                            self.imageView.layer.addSublayer(self.gradientLayer)
+                URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+                    guard let self = self, let data = data else { return }
+                    
+                    DispatchQueue.main.async {
+                        if let image = UIImage(data: data) {
+                            self.imageView.image = image
+                            let aspectRatio = image.size.width / image.size.height
+                            let imageViewHeight = self.imageView.frame.width / aspectRatio
+                            self.imageView.frame.size.height = imageViewHeight
                             self.gradientLayer.frame = self.imageView.bounds
+                            self.imageView.layer.addSublayer(self.gradientLayer)
                         }
                     }
                 }.resume()
             }
         }
+    }
+
+    private func updateScrollViewContentSize() {
+        self.contentView.layoutIfNeeded()
+        self.scrollView.contentSize = CGSize(width: self.view.frame.width, height: self.contentView.frame.height)
     }
     
     private func setupView() {
@@ -119,7 +130,7 @@ class MovieDetailViewController: UIViewController {
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
 //            imageView.heightAnchor.constraint(equalToConstant: 300),
             
-            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: -50),
+            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: -200),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
