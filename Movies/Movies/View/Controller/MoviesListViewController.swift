@@ -9,12 +9,11 @@ import UIKit
 
 class MoviesListViewController: UIViewController {
     private let viewModel = MoviesViewModel()
-    private var movies: [Movie] = []
     
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(MovieSectionTableViewCell.self, forCellReuseIdentifier: MovieSectionTableViewCell.identifier)
         return tableView
     }()
     
@@ -25,7 +24,7 @@ class MoviesListViewController: UIViewController {
     }
     
     private func setupView() {
-        title = "Filmes Populares"
+        title = "Filmes"
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
@@ -40,26 +39,43 @@ class MoviesListViewController: UIViewController {
     
     private func fetchMovies() {
         viewModel.fetchMovies { [weak self] in
-            self?.movies = self?.viewModel.movies ?? []
             self?.tableView.reloadData()
         }
     }
 }
 
 extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 3
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies.count
+        return 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = movies[indexPath.row].title
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MovieSectionTableViewCell.identifier, for: indexPath) as? MovieSectionTableViewCell else {
+            return UITableViewCell()
+        }
+        let movies: [Movie]
+        switch indexPath.section {
+            case 0:
+                movies = viewModel.popularMovies
+            cell.configure(with: movies, title: "Populares", navigationController: navigationController!)
+            case 1:
+                movies = viewModel.actionMovies
+                cell.configure(with: movies, title: "Ação", navigationController: navigationController!)
+            case 2:
+                movies = viewModel.comedyMovies
+                cell.configure(with: movies, title: "Comédia", navigationController: navigationController!)
+            default:
+                movies = []
+        }
         return cell
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let movie = movies[indexPath.row]
-        let detailVC = MovieDetailViewController(movie: movie)
-        navigationController?.pushViewController(detailVC, animated: true)
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // Altura do carrossel
+        return 200
     }
 }
