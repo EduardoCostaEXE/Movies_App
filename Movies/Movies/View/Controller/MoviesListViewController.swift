@@ -46,7 +46,7 @@ class MoviesListViewController: UIViewController {
 
 extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return 4
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -59,17 +59,20 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         let movies: [Movie]
         switch indexPath.section {
-            case 0:
-                movies = viewModel.popularMovies
+        case 0:
+            movies = viewModel.favoriteMovies
+            cell.configure(with: movies, title: "Favoritos", navigationController: navigationController!)
+        case 1:
+            movies = viewModel.popularMovies
             cell.configure(with: movies, title: "Populares", navigationController: navigationController!)
-            case 1:
-                movies = viewModel.actionMovies
-                cell.configure(with: movies, title: "Ação", navigationController: navigationController!)
-            case 2:
-                movies = viewModel.comedyMovies
-                cell.configure(with: movies, title: "Comédia", navigationController: navigationController!)
-            default:
-                movies = []
+        case 2:
+            movies = viewModel.actionMovies
+            cell.configure(with: movies, title: "Ação", navigationController: navigationController!)
+        case 3:
+            movies = viewModel.comedyMovies
+            cell.configure(with: movies, title: "Comédia", navigationController: navigationController!)
+        default:
+            movies = []
         }
         return cell
     }
