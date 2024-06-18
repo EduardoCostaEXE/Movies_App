@@ -16,6 +16,8 @@ class MoviesListViewController: UIViewController {
         tableView.register(MovieSectionTableViewCell.self, forCellReuseIdentifier: MovieSectionTableViewCell.identifier)
         return tableView
     }()
+    
+    private var sections: [Section] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,7 +26,7 @@ class MoviesListViewController: UIViewController {
     }
 
     private func setupView() {
-        title = "Filmes"
+        title = "Movies"
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
@@ -39,14 +41,25 @@ class MoviesListViewController: UIViewController {
 
     private func fetchMovies() {
         viewModel.fetchMovies { [weak self] in
-            self?.tableView.reloadData()
+            guard let self = self else { return }
+            self.configureSections()
+            self.tableView.reloadData()
         }
+    }
+
+    private func configureSections() {
+        sections.removeAll()
+
+        if viewModel.favoriteMovies.count > 0 {
+            sections.append(.favorite)
+        }
+        sections.append(contentsOf: [.popular, .action, .comedy])
     }
 }
 
 extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 4
+        return sections.count
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -57,27 +70,37 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MovieSectionTableViewCell.identifier, for: indexPath) as? MovieSectionTableViewCell else {
             return UITableViewCell()
         }
+
         let movies: [Movie]
-        switch indexPath.section {
-        case 0:
+        let title: String
+
+        switch sections[indexPath.section] {
+        case .favorite:
             movies = viewModel.favoriteMovies
-            cell.configure(with: movies, title: "Favoritos", navigationController: navigationController!)
-        case 1:
+            title = "Favorites"
+        case .popular:
             movies = viewModel.popularMovies
-            cell.configure(with: movies, title: "Populares", navigationController: navigationController!)
-        case 2:
+            title = "Popular"
+        case .action:
             movies = viewModel.actionMovies
-            cell.configure(with: movies, title: "Ação", navigationController: navigationController!)
-        case 3:
+            title = "Action"
+        case .comedy:
             movies = viewModel.comedyMovies
-            cell.configure(with: movies, title: "Comédia", navigationController: navigationController!)
-        default:
-            movies = []
+            title = "Comedy"
         }
+
+        cell.configure(with: movies, title: title, navigationController: navigationController!)
         return cell
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 200
     }
+}
+
+enum Section {
+    case favorite
+    case popular
+    case action
+    case comedy
 }

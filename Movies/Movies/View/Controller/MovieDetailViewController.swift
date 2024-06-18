@@ -10,6 +10,15 @@ import UIKit
 class MovieDetailViewController: UIViewController {
     private let movie: Movie
 
+    private var isFavorite: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: "favorite_\(movie.id)")
+        }
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: "favorite_\(movie.id)")
+        }
+    }
+
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -63,6 +72,15 @@ class MovieDetailViewController: UIViewController {
         return label
     }()
 
+    private let favoriteButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Add to Favorites", for: .normal)
+        button.setTitleColor(.blue, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(toggleFavorite), for: .touchUpInside)
+        return button
+    }()
+
     init(movie: Movie) {
         self.movie = movie
         super.init(nibName: nil, bundle: nil)
@@ -86,8 +104,12 @@ class MovieDetailViewController: UIViewController {
 
     private func configureView() {
         titleLabel.text = movie.title
-        genresLabel.text = "Ação | Aventura" // Substituir pelos gêneros reais do filme que virão por API
+        if let genres = movie.genres {
+            genresLabel.text = genres.map { $0.name }.joined(separator: " | ")
+        }
         overviewLabel.text = "\t\(movie.overview)"
+        favoriteButton.setTitle(isFavorite ? "Remove from Favorites" : "Add to Favorites", for: .normal)
+
         if let posterPath = movie.posterPath {
             let urlString = "https://image.tmdb.org/t/p/w500\(posterPath)"
             if let url = URL(string: urlString) {
@@ -109,6 +131,17 @@ class MovieDetailViewController: UIViewController {
         }
     }
 
+    @objc private func toggleFavorite() {
+        isFavorite.toggle()
+        favoriteButton.setTitle(isFavorite ? "Remove from Favorites" : "Add to Favorites", for: .normal)
+        if isFavorite {
+            MoviesViewModel.shared.favoriteMovies.append(movie)
+        } else {
+            MoviesViewModel.shared.favoriteMovies.removeAll { $0.id == movie.id }
+        }
+        NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
+    }
+
     private func updateScrollViewContentSize() {
         self.contentView.layoutIfNeeded()
         self.scrollView.contentSize = CGSize(width: self.view.frame.width, height: self.contentView.frame.height)
@@ -123,6 +156,7 @@ class MovieDetailViewController: UIViewController {
         contentView.addSubview(titleLabel)
         contentView.addSubview(genresLabel)
         contentView.addSubview(overviewLabel)
+        contentView.addSubview(favoriteButton)
 
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -152,7 +186,14 @@ class MovieDetailViewController: UIViewController {
             overviewLabel.topAnchor.constraint(equalTo: genresLabel.bottomAnchor, constant: 20),
             overviewLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             overviewLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            overviewLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+
+            favoriteButton.topAnchor.constraint(equalTo: overviewLabel.bottomAnchor, constant: 20),
+            favoriteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            favoriteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
     }
+}
+
+extension Notification.Name {
+    static let favoritesUpdated = Notification.Name("favoritesUpdated")
 }
