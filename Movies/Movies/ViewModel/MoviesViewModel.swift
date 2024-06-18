@@ -14,79 +14,55 @@ class MoviesViewModel {
     var popularMovies: [Movie] = []
     var actionMovies: [Movie] = []
     var comedyMovies: [Movie] = []
-    
+    var favoriteMovies: [Movie] = []
+
     func fetchMovies(completion: @escaping () -> Void) {
         let group = DispatchGroup()
         
         group.enter()
-        fetchMovies(endpoint: "/movie/popular", language: "pt-BR") { movies in
-            self.popularMovies = movies ?? []
+        fetchMovies(for: .popular) { [weak self] movies in
             group.leave()
         }
             
+
         group.enter()
-        fetchMovies(endpoint: "/discover/movie", genre: 28, language: "pt-BR") { movies in
-            self.actionMovies = movies ?? []
+        fetchMovies(for: .action) { [weak self] movies in
             group.leave()
         }
         
+
         group.enter()
-        fetchMovies(endpoint: "/discover/movie", genre: 35, language: "pt-BR") { movies in
-            self.comedyMovies = movies ?? []
+        fetchMovies(for: .comedy) { [weak self] movies in
             group.leave()
         }
         
+
         group.notify(queue: .main) {
             completion()
         }
     }
-        
-    private func fetchMovies(endpoint: String, genre: Int? = nil, language: String, completion: @escaping ([Movie]?) -> Void) {
-        var urlString = "https://api.themoviedb.org/3\(endpoint)?api_key=\(apiKey)&language=\(language)"
         if let genre = genre {
             urlString += "&with_genres=\(genre)"
         }
         
         guard let url = URL(string: urlString) else {
-            print("URL inválida: \(urlString)")
-            completion(nil)
+
+        guard let url = URL(string: categoryURL) else {
+            completion([])
             return
         }
-        
-        print("Fetching URL: \(urlString)")
-        
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Erro na requisição: \(error)")
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-                return
-            }
-            
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data else {
-                print("Dados não encontrados")
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
+                completion([])
                 return
             }
-            
             do {
                 let response = try JSONDecoder().decode(MovieResponse.self, from: data)
-                DispatchQueue.main.async {
-                    completion(response.results)
-                }
+                completion(response.results)
             } catch {
-                print("Erro na decodificação: \(error)")
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("JSON Recebido: \(jsonString)")
-                }
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
+                completion([])
             }
-        }
-        task.resume()
+        }.resume()
     }
 }

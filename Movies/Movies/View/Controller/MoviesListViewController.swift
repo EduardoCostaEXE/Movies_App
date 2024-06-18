@@ -9,20 +9,20 @@ import UIKit
 
 class MoviesListViewController: UIViewController {
     private let viewModel = MoviesViewModel()
-    
+
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(MovieSectionTableViewCell.self, forCellReuseIdentifier: MovieSectionTableViewCell.identifier)
         return tableView
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         fetchMovies()
     }
-    
+
     private func setupView() {
         title = "Filmes"
         view.addSubview(tableView)
@@ -36,7 +36,7 @@ class MoviesListViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
-    
+
     private func fetchMovies() {
         viewModel.fetchMovies { [weak self] in
             self?.tableView.reloadData()
@@ -48,11 +48,11 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
         return 3
     }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MovieSectionTableViewCell.identifier, for: indexPath) as? MovieSectionTableViewCell else {
             return UITableViewCell()
@@ -73,9 +73,8 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
-    
+
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        // Altura do carrossel
         return 200
     }
 }
