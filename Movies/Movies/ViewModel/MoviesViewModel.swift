@@ -10,11 +10,20 @@ class MoviesViewModel {
     static let shared = MoviesViewModel()
 
     private let apiService = APIService()
+    
+    var favoriteMovies: [Movie] = [] {
+        didSet {
+            saveFavoriteMovies()
+        }
+    }
 
-    var favoriteMovies: [Movie] = []
     var popularMovies: [Movie] = []
     var actionMovies: [Movie] = []
     var comedyMovies: [Movie] = []
+    
+    init() {
+        loadFavoriteMovies()
+    }
 
     func fetchMovies(completion: @escaping () -> Void) {
         let dispatchGroup = DispatchGroup()
@@ -54,6 +63,22 @@ class MoviesViewModel {
 
         dispatchGroup.notify(queue: .main) {
             completion()
+        }
+    }
+    
+    private func saveFavoriteMovies() {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(favoriteMovies) {
+            UserDefaults.standard.set(encoded, forKey: "favoriteMovies")
+        }
+    }
+
+    private func loadFavoriteMovies() {
+        if let savedMovies = UserDefaults.standard.object(forKey: "favoriteMovies") as? Data {
+            let decoder = JSONDecoder()
+            if let loadedMovies = try? decoder.decode([Movie].self, from: savedMovies) {
+                favoriteMovies = loadedMovies
+            }
         }
     }
 }

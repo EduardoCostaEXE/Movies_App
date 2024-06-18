@@ -135,7 +135,9 @@ class MovieDetailViewController: UIViewController {
         isFavorite.toggle()
         favoriteButton.setTitle(isFavorite ? "Remove from Favorites" : "Add to Favorites", for: .normal)
         if isFavorite {
-            MoviesViewModel.shared.favoriteMovies.append(movie)
+            if !MoviesViewModel.shared.favoriteMovies.contains(where: { $0.id == movie.id }) {
+                MoviesViewModel.shared.favoriteMovies.append(movie)
+            }
         } else {
             MoviesViewModel.shared.favoriteMovies.removeAll { $0.id == movie.id }
         }
