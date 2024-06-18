@@ -15,6 +15,7 @@ class MovieSectionTableViewCell: UITableViewCell {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
+        label.textColor = .white
         label.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -43,6 +44,7 @@ class MovieSectionTableViewCell: UITableViewCell {
     }
 
     private func setupView() {
+        contentView.backgroundColor = .black
         contentView.addSubview(titleLabel)
         contentView.addSubview(collectionView)
         

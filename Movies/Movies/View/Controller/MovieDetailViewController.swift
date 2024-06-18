@@ -73,9 +73,11 @@ class MovieDetailViewController: UIViewController {
     }()
 
     private let favoriteButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Add to Favorites", for: .normal)
-        button.setTitleColor(.blue, for: .normal)
+        let button = UIButton(type: .custom)
+        button.layer.cornerRadius = 30
+        button.clipsToBounds = true
+        button.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+        button.setTitleColor(.white, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(toggleFavorite), for: .touchUpInside)
         return button
@@ -108,7 +110,16 @@ class MovieDetailViewController: UIViewController {
             genresLabel.text = genres.map { $0.name }.joined(separator: " | ")
         }
         overviewLabel.text = "\t\(movie.overview)"
-        favoriteButton.setTitle(isFavorite ? "Remove from Favorites" : "Add to Favorites", for: .normal)
+        
+        if isFavorite {
+            favoriteButton.setTitle("❤️", for: .normal)
+            favoriteButton.backgroundColor = .white
+            favoriteButton.setTitleColor(.red, for: .normal)
+        } else {
+            favoriteButton.setTitle("🖤", for: .normal)
+            favoriteButton.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+            favoriteButton.setTitleColor(.black, for: .normal)
+        }
 
         if let posterPath = movie.posterPath {
             let urlString = "https://image.tmdb.org/t/p/w500\(posterPath)"
@@ -133,14 +144,23 @@ class MovieDetailViewController: UIViewController {
 
     @objc private func toggleFavorite() {
         isFavorite.toggle()
-        favoriteButton.setTitle(isFavorite ? "Remove from Favorites" : "Add to Favorites", for: .normal)
+        
         if isFavorite {
+            favoriteButton.setTitle("❤️", for: .normal)
+            favoriteButton.backgroundColor = .white
+            favoriteButton.setTitleColor(.red, for: .normal)
+            
             if !MoviesViewModel.shared.favoriteMovies.contains(where: { $0.id == movie.id }) {
                 MoviesViewModel.shared.favoriteMovies.append(movie)
             }
         } else {
+            favoriteButton.setTitle("🖤", for: .normal)
+            favoriteButton.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+            favoriteButton.setTitleColor(.black, for: .normal)
+            
             MoviesViewModel.shared.favoriteMovies.removeAll { $0.id == movie.id }
         }
+
         NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
     }
 
@@ -191,6 +211,8 @@ class MovieDetailViewController: UIViewController {
 
             favoriteButton.topAnchor.constraint(equalTo: overviewLabel.bottomAnchor, constant: 20),
             favoriteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            favoriteButton.widthAnchor.constraint(equalToConstant: 60),
+            favoriteButton.heightAnchor.constraint(equalToConstant: 60),
             favoriteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
     }

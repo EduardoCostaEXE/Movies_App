@@ -30,16 +30,16 @@ class MoviesListViewController: UIViewController {
     }
 
     private func setupView() {
-        title = "Movies"
         view.addSubview(tableView)
+        tableView.backgroundColor = .black
         tableView.delegate = self
         tableView.dataSource = self
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
     }
 
